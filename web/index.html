@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainScan AI - Beyin Tümörü Analiz Sistemi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #22d3ee;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 2rem;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        main {
+            max-width: 1200px;
+            width: 100%;
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .upload-section {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 3rem;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary);
+            background: rgba(30, 41, 59, 0.9);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .upload-text h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text p {
+            color: var(--text-muted);
+        }
+
+        input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        select {
+            background: #1e293b;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            outline: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .results-container {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .image-box {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 1;
+        }
+
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .image-box:hover img {
+            transform: scale(1.05);
+        }
+
+        .analysis-card {
+            grid-column: span 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.1), rgba(79, 172, 254, 0.1));
+            border: 1px solid var(--primary);
+        }
+
+        .prediction-label {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            text-transform: capitalize;
+        }
+
+        .confidence-badge {
+            background: var(--primary);
+            color: var(--bg);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .loading {
+            display: none;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .prob-bar-container {
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        .prob-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">BrainScan AI</div>
+        <div class="subtitle">Derin Öğrenme Tabanlı MRI Analiz Platformu</div>
+    </header>
+
+    <main>
+        <div class="controls">
+            <span>Model Seçin:</span>
+            <select id="modelSelector">
+                <option value="CustomCNN">BrainNet-v1 (Custom)</option>
+                <option value="DenseNet121">DenseNet121</option>
+                <option value="ResNet50">ResNet50</option>
+                <option value="EfficientNetB0">EfficientNetB0</option>
+            </select>
+        </div>
+
+        <div class="upload-section" id="dropZone">
+            <span class="upload-icon">🧬</span>
+            <div class="upload-text">
+                <h2>MRI Görüntüsü Yükleyin</h2>
+                <p>Dosyayı sürükleyin veya tıklayarak seçin (JPG, PNG)</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div class="loading" id="loader">
+            <div class="spinner"></div>
+            <p>Yapay Zeka Analiz Ediyor...</p>
+        </div>
+
+        <div class="results-container" id="results">
+            <div class="card">
+                <h3>Orijinal Görüntü</h3>
+                <div class="image-box">
+                    <img id="imgOriginal" src="" alt="">
+                </div>
+            </div>
+
+            <div class="card analysis-card">
+                <h3>Analiz Sonucu</h3>
+                <div class="prediction-label" id="resLabel">-</div>
+                <div class="confidence-badge" id="resConf">0%</div>
+
+                <div class="prob-bar-container" id="probBars">
+                    <!-- Dinamik dolacak -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>XAI - Grad-CAM Analizi</h3>
+                <div class="image-box">
+                    <img id="imgOverlay" src="" alt="">
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">
+                    *Kırmızı bölgeler modelin teşhis koyarken odaklandığı tümör dokusunu temsil eder.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2024 Sakarya Üniversitesi | Derin Öğrenme Projesi
+    </footer>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const results = document.getElementById('results');
+        const loader = document.getElementById('loader');
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // UI Hazırla
+            results.style.display = 'none';
+            loader.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('model', document.getElementById('modelSelector').value);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                // Verileri Yerleştir
+                document.getElementById('imgOriginal').src = `data:image/png;base64,${data.original}`;
+                document.getElementById('imgOverlay').src = `data:image/png;base64,${data.overlay}`;
+                document.getElementById('resLabel').innerText = data.label;
+                document.getElementById('resConf').innerText = data.confidence;
+
+                // Olasılık barlarını oluştur
+                const barContainer = document.getElementById('probBars');
+                barContainer.innerHTML = '';
+                for (const [cls, prob] of Object.entries(data.all_probs)) {
+                    const row = document.createElement('div');
+                    row.innerHTML = `
+                        <div class="prob-row">
+                            <span>${cls}</span>
+                            <span>${prob}</span>
+                        </div>
+                        <div class="bar-bg"><div class="bar-fill" style="width: ${prob}"></div></div>
+                    `;
+                    barContainer.appendChild(row);
+                }
+
+                loader.style.display = 'none';
+                results.style.display = 'grid';
+
+            } catch (err) {
+                alert("Hata: " + err.message);
+                loader.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>
